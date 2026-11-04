@@ -450,7 +450,8 @@ def recommend():
 
 @app.errorhandler(404)
 def not_found(e):
-    return render_template("setup.html", error="404 Not Found: The requested URL was not found on the server."), 404
+    diag = f"PATH_INFO: {request.environ.get('PATH_INFO')} | Headers: {dict(request.headers)}"
+    return render_template("setup.html", error=diag), 404
 
 @app.errorhandler(500)
 def server_error(e):
