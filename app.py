@@ -20,6 +20,23 @@ app = Flask(
 )
 app.secret_key = os.environ.get("SECRET_KEY", "agri-secret-production-key-2026")
 
+class VercelPathMiddleware:
+    """Restores the original requested URI on Vercel serverless rewrites."""
+    def __init__(self, wsgi_app):
+        self.wsgi_app = wsgi_app
+
+    def __call__(self, environ, start_response):
+        forwarded_uri = (
+            environ.get("HTTP_X_FORWARDED_URI")
+            or environ.get("HTTP_X_MATCHED_PATH")
+            or environ.get("HTTP_X_ORIGINAL_URL")
+        )
+        if forwarded_uri:
+            environ["PATH_INFO"] = forwarded_uri.split("?")[0]
+        return self.wsgi_app(environ, start_response)
+
+app.wsgi_app = VercelPathMiddleware(app.wsgi_app)
+
 def get_db_config():
     """Extract database connection settings from DATABASE_URL, POSTGRES_URL, or discrete environment variables."""
     raw_url = (
