@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="panel" style="max-width: 700px; margin: 2rem auto; border-top: 4px solid var(--wheat);">
+  <h1>Connect Your Database</h1>
+  <p class="lead">The application is running live, but cannot connect to your PostgreSQL database yet.</p>
+  
+  {% if error %}
+  <div class="flash" style="border-left-color: var(--danger); background: #fdf2f2; color: #721c24;">
+    <strong>Connection details:</strong> {{ error }}
+  </div>
+  {% endif %}
+
+  <h2>How to connect on Vercel:</h2>
+  <ol style="padding-left: 1.2rem; line-height: 1.8;">
+    <li>Create a free cloud PostgreSQL database on <a href="https://neon.tech" target="_blank" rel="noopener">Neon.tech</a> or <a href="https://supabase.com" target="_blank" rel="noopener">Supabase.com</a>.</li>
+    <li>Copy your connection string (URL) which looks like:<br>
+      <code>postgresql://user:password@host/dbname?sslmode=require</code>
+    </li>
+    <li>In your <strong>Vercel Dashboard</strong>, go to: <em>Project &rarr; Settings &rarr; Environment Variables</em>.</li>
+    <li>Add a new variable named <strong><code>DATABASE_URL</code></strong> and paste your connection string.</li>
+    <li>Redeploy or reload this page. The system will automatically create the tables and seed initial data!</li>
+  </ol>
+
+  <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center;">
+    <a href="{{ url_for('dashboard') }}" class="btn">Retry Connection</a>
+    <a href="{{ url_for('init_db') }}" class="btn-sm">Initialize Database Tables</a>
+  </div>
+</div>
+{% endblock %}

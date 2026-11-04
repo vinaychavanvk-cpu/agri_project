@@ -1,0 +1,41 @@
+{% extends "base.html" %}{% block body %}
+<h1>{{ 'Edit' if editing else 'Add' }} record: {{ title }}</h1>
+<form method="post" class="card">
+{% for c, kind in cols %}
+  <label>{{ c.replace('_',' ').title() }}
+  {% if kind == 'fk' %}
+    <select name="{{ c }}" {% if not c.startswith('crop') and not c.startswith('fertilizer') or t != 'recommendation' %}required{% endif %}>
+      <option value="">-- none --</option>
+      {% for o in opts[c] %}<option value="{{ o.id }}" {{ 'selected' if row[c] == o.id }}>{{ o.id }} - {{ o.label }}</option>{% endfor %}
+    </select>
+  {% elif c in ['address', 'reason', 'irrigation_advice', 'location'] %}
+    <textarea name="{{ c }}" rows="3">{{ row[c] if row[c] is not none else '' }}</textarea>
+  {% elif c == 'water_requirement' %}
+    <select name="{{ c }}">
+      {% for opt in ['Low', 'Medium', 'High'] %}
+      <option value="{{ opt }}" {{ 'selected' if row[c] == opt }}>{{ opt }}</option>
+      {% endfor %}
+    </select>
+  {% elif c == 'season' %}
+    <select name="{{ c }}">
+      {% for opt in ['Kharif', 'Rabi', 'Summer', 'Zaid', 'All Season'] %}
+      <option value="{{ opt }}" {{ 'selected' if row[c] == opt }}>{{ opt }}</option>
+      {% endfor %}
+    </select>
+  {% elif c == 'method' and t == 'irrigation' %}
+    <select name="{{ c }}">
+      {% for opt in ['Drip', 'Sprinkler', 'Flood', 'Furrow', 'Manual'] %}
+      <option value="{{ opt }}" {{ 'selected' if row[c] == opt }}>{{ opt }}</option>
+      {% endfor %}
+    </select>
+  {% elif c == 'ph' %}
+    <input name="{{ c }}" type="number" step="0.1" min="0" max="14" placeholder="0.0 - 14.0" value="{{ row[c] if row[c] is not none else '' }}">
+  {% elif c == 'moisture' %}
+    <input name="{{ c }}" type="number" step="0.1" min="0" max="100" placeholder="0 - 100%" value="{{ row[c] if row[c] is not none else '' }}">
+  {% else %}
+    <input name="{{ c }}" type="{{ kind }}" {{ 'step=any' if kind == 'number' }} value="{{ row[c] if row[c] is not none else '' }}">
+  {% endif %}</label>
+{% endfor %}
+<div><button class="btn">Save record</button> <a href="{{ url_for('list_rows', t=t) }}">Cancel</a></div>
+</form>
+{% endblock %}

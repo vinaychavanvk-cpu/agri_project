@@ -1,0 +1,41 @@
+{% extends "base.html" %}{% block body %}
+<div class="head">
+  <div>
+    <h1>{{ title }}</h1>
+    <span class="meta-count">{{ rows|length }} record{{ 's' if rows|length != 1 else '' }}</span>
+  </div>
+  <a class="btn" href="{{ url_for('form', t=t) }}">+ Add {{ title[:-1] if title.endswith('s') else title }}</a>
+</div>
+
+<div class="scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        {% for c in cols %}<th>{{ c.replace('_',' ').title() }}</th>{% endfor %}
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><strong>{{ r[pk] }}</strong></td>
+        {% for c in cols %}
+        <td>{% if c in lk %}{{ lk[c].get(r[c], '-') }}{% else %}{{ r[c] if r[c] is not none else '-' }}{% endif %}</td>
+        {% endfor %}
+        <td class="act">
+          <a class="btn-sm" href="{{ url_for('form', t=t, rid=r[pk]) }}">Edit</a>
+          <form method="post" action="{{ url_for('delete', t=t, rid=r[pk]) }}" onsubmit="return confirm('Are you sure you want to delete record #{{ r[pk] }}?')">
+            <button class="link danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="{{ cols|length + 2 }}" class="empty">No records yet. Click '+ Add' to create the first record.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

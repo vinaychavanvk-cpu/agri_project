@@ -1,0 +1,57 @@
+{% extends "base.html" %}{% block body %}
+<h1>Crop advisor</h1>
+<p class="lead">Select a field. The advisor analyzes its latest soil test, current seasonal calendar, and local weather to recommend the best crop, fertilizer, and irrigation plan.</p>
+<form method="post" class="card inline">
+  <label>Field <select name="field_id" required>{% for f in fields %}<option value="{{ f.field_id }}" {{ 'selected' if fid|string == f.field_id|string }}>{{ f.field_name }}</option>{% endfor %}</select></label>
+  <button class="btn">Analyse field</button>
+</form>
+
+{% if r %}
+{% if r.weather %}
+<div class="weather-badge">
+  <span>🌤️ <strong>Local Weather:</strong> {{ r.weather.temperature }}°C | Rainfall: {{ r.weather.rainfall }} mm | Humidity: {{ r.weather.humidity }}% (Date: {{ r.weather.date }})</span>
+</div>
+{% endif %}
+
+<section class="grid result">
+  <div class="panel">
+    <h2>Best crop</h2>
+    <p class="big">{{ r.crop.crop_name }}</p>
+    <p>{{ r.crop.crop_type }}, pH {{ r.crop.min_ph }}-{{ r.crop.max_ph }}</p>
+    {% if r.season %}<span class="tag">Season: {{ r.season }}</span>{% endif %}
+  </div>
+  <div class="panel">
+    <h2>Fertilizer</h2>
+    <p class="big">{{ r.fert.fertilizer_name }}</p>
+    <p>{{ r.fert.type }}</p>
+  </div>
+  <div class="panel">
+    <h2>Irrigation</h2>
+    <p>{{ r.irrigation }}</p>
+  </div>
+</section>
+
+<div class="panel">
+  <h2>Why this recommendation?</h2>
+  <p>{{ r.reason }}</p>
+  <form method="post">
+    <input type="hidden" name="field_id" value="{{ fid }}">
+    <button class="btn" name="save" value="1">Save this recommendation</button>
+  </form>
+</div>
+
+{% if r.alternatives %}
+<div class="panel">
+  <h2>Alternative suitable crops</h2>
+  <div class="alt-crops">
+    {% for alt in r.alternatives %}
+    <div class="alt-crop-chip">
+      <strong>{{ alt.crop_name }}</strong> ({{ alt.crop_type }}) — pH {{ alt.min_ph }} to {{ alt.max_ph }} | Water requirement: {{ alt.water_requirement }}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}{% block body %}
+<h1>Farm overview</h1>
+<p class="lead">{{ counts.farmer }} farmers managing {{ counts.field }} fields across {{ area }} acres.</p>
+
+<section class="grid">
+  <div class="panel">
+    <h2>Average yield by crop</h2>
+    {% for y in yields %}
+    <div class="bar">
+      <span>{{ y.crop_name }}</span>
+      <i style="width: {{ ((y.y|float / (top if top > 0 else 1.0)) * 100)|round }}%"></i>
+      <b>{{ y.y }}</b>
+    </div>
+    {% else %}
+    <p class="empty">No harvest data recorded yet.</p>
+    {% endfor %}
+  </div>
+
+  <div class="panel">
+    <h2>Latest recommendations</h2>
+    {% for r in recent %}
+    <p class="row">
+      <span><b>{{ r.field_name }}</b> &rarr; {{ r.crop_name or 'General' }}</span>
+      <em>{{ r.recommendation_date }}</em>
+    </p>
+    {% else %}
+    <p class="empty">None yet. Try the crop advisor.</p>
+    {% endfor %}
+    <a class="btn" style="margin-top: 0.8rem;" href="{{ url_for('recommend') }}">Run crop advisor &rarr;</a>
+  </div>
+</section>
+
+<h2>Database records overview</h2>
+<div class="counts">
+  {% for k, v in tables.items() %}
+  <a href="{{ url_for('list_rows', t=k) }}">
+    <b>{{ counts[k] }}</b>
+    <span>{{ v[0] }}</span>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

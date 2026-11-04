@@ -1,0 +1,22 @@
+# Environment variables and secrets
+.env
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+
+# Vercel CLI
+.vercel/
+
+# VS Code local settings
+.vscode/
+
+# Backup files
+*.backup
+*.bak
+*.pyc
+.DS_Store
