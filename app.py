@@ -26,13 +26,13 @@ class VercelPathMiddleware:
         self.wsgi_app = wsgi_app
 
     def __call__(self, environ, start_response):
-        forwarded_uri = (
-            environ.get("HTTP_X_FORWARDED_URI")
-            or environ.get("HTTP_X_MATCHED_PATH")
-            or environ.get("HTTP_X_ORIGINAL_URL")
-        )
-        if forwarded_uri:
-            environ["PATH_INFO"] = forwarded_uri.split("?")[0]
+        qs = environ.get("QUERY_STRING", "")
+        params = urllib.parse.parse_qs(qs, keep_blank_values=True)
+        if "__path" in params:
+            raw_path = params["__path"][0].lstrip("/")
+            environ["PATH_INFO"] = "/" + raw_path
+        elif environ.get("PATH_INFO") == "/api/index":
+            environ["PATH_INFO"] = "/"
         return self.wsgi_app(environ, start_response)
 
 app.wsgi_app = VercelPathMiddleware(app.wsgi_app)
@@ -450,8 +450,7 @@ def recommend():
 
 @app.errorhandler(404)
 def not_found(e):
-    diag = f"PATH_INFO: {request.environ.get('PATH_INFO')} | Headers: {dict(request.headers)}"
-    return render_template("setup.html", error=diag), 404
+    return render_template("setup.html", error="404 Not Found: The requested page could not be found."), 404
 
 @app.errorhandler(500)
 def server_error(e):
