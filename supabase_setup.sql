@@ -1,0 +1,205 @@
+-- ====================================================
+-- SMART AGRICULTURE MANAGEMENT SYSTEM - SUPABASE SETUP
+-- Run this script once in Supabase SQL Editor
+-- ====================================================
+
+-- Smart Agriculture Management System - PostgreSQL Database Schema
+-- Compatible with PostgreSQL 13+, Neon, Supabase, Vercel Postgres, AWS RDS
+
+-- 1. Farmers
+CREATE TABLE IF NOT EXISTS farmer (
+    farmer_id INTEGER PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    phone VARCHAR(15),
+    address VARCHAR(200)
+);
+
+-- 2. Fields
+CREATE TABLE IF NOT EXISTS field (
+    field_id INTEGER PRIMARY KEY,
+    farmer_id INTEGER NOT NULL REFERENCES farmer(farmer_id) ON DELETE CASCADE,
+    field_name VARCHAR(100) NOT NULL,
+    area NUMERIC(10,2),
+    location VARCHAR(150)
+);
+
+-- 3. Crops
+CREATE TABLE IF NOT EXISTS crop (
+    crop_id INTEGER PRIMARY KEY,
+    crop_name VARCHAR(100) NOT NULL,
+    crop_type VARCHAR(50),
+    min_ph NUMERIC(4,2),
+    max_ph NUMERIC(4,2),
+    water_requirement VARCHAR(50),
+    min_nitrogen NUMERIC(10,2),
+    min_phosphorus NUMERIC(10,2),
+    min_potassium NUMERIC(10,2)
+);
+
+-- 4. Crop Seasons
+CREATE TABLE IF NOT EXISTS crop_season (
+    crop_season_id INTEGER PRIMARY KEY,
+    crop_id INTEGER NOT NULL REFERENCES crop(crop_id) ON DELETE CASCADE,
+    season VARCHAR(50) NOT NULL
+);
+
+-- 5. Field Crops (Harvests & Plantings)
+CREATE TABLE IF NOT EXISTS field_crop (
+    field_crop_id INTEGER PRIMARY KEY,
+    field_id INTEGER NOT NULL REFERENCES field(field_id) ON DELETE CASCADE,
+    crop_id INTEGER NOT NULL REFERENCES crop(crop_id) ON DELETE CASCADE,
+    season VARCHAR(50),
+    sowing_date DATE,
+    harvest_date DATE,
+    yield NUMERIC(10,2)
+);
+
+-- 6. Soil Tests
+CREATE TABLE IF NOT EXISTS soil (
+    soil_id INTEGER PRIMARY KEY,
+    field_id INTEGER NOT NULL REFERENCES field(field_id) ON DELETE CASCADE,
+    test_date DATE NOT NULL,
+    soil_type VARCHAR(50),
+    ph NUMERIC(4,2),
+    nitrogen NUMERIC(10,2),
+    phosphorus NUMERIC(10,2),
+    potassium NUMERIC(10,2),
+    moisture NUMERIC(5,2)
+);
+
+-- 7. Weather Records
+CREATE TABLE IF NOT EXISTS weather (
+    weather_id INTEGER PRIMARY KEY,
+    field_id INTEGER NOT NULL REFERENCES field(field_id) ON DELETE CASCADE,
+    date DATE NOT NULL,
+    temperature NUMERIC(5,2),
+    rainfall NUMERIC(6,2),
+    humidity NUMERIC(5,2)
+);
+
+-- 8. Irrigation Logs
+CREATE TABLE IF NOT EXISTS irrigation (
+    irrigation_id INTEGER PRIMARY KEY,
+    field_id INTEGER NOT NULL REFERENCES field(field_id) ON DELETE CASCADE,
+    date DATE NOT NULL,
+    water_amount NUMERIC(10,2),
+    method VARCHAR(50)
+);
+
+-- 9. Fertilizers
+CREATE TABLE IF NOT EXISTS fertilizer (
+    fertilizer_id INTEGER PRIMARY KEY,
+    fertilizer_name VARCHAR(100) NOT NULL,
+    type VARCHAR(50),
+    nitrogen_content NUMERIC(5,2),
+    phosphorus_content NUMERIC(5,2),
+    potassium_content NUMERIC(5,2)
+);
+
+-- 10. Field Fertilizer Usage
+CREATE TABLE IF NOT EXISTS field_fertilizer (
+    field_fertilizer_id INTEGER PRIMARY KEY,
+    field_id INTEGER NOT NULL REFERENCES field(field_id) ON DELETE CASCADE,
+    fertilizer_id INTEGER NOT NULL REFERENCES fertilizer(fertilizer_id) ON DELETE CASCADE,
+    date DATE NOT NULL,
+    quantity NUMERIC(10,2)
+);
+
+-- 11. Recommendations
+CREATE TABLE IF NOT EXISTS recommendation (
+    recommendation_id INTEGER PRIMARY KEY,
+    field_id INTEGER NOT NULL REFERENCES field(field_id) ON DELETE CASCADE,
+    crop_id INTEGER REFERENCES crop(crop_id) ON DELETE SET NULL,
+    fertilizer_id INTEGER REFERENCES fertilizer(fertilizer_id) ON DELETE SET NULL,
+    recommendation_date DATE NOT NULL,
+    irrigation_advice VARCHAR(255),
+    reason VARCHAR(500)
+);
+
+
+-- ====================================================
+-- INITIAL DATA SEEDING (ON CONFLICT DO NOTHING)
+-- ====================================================
+
+-- Smart Agriculture Management System - Initial Seed Data
+-- Safe to run repeatedly (uses ON CONFLICT DO NOTHING)
+
+INSERT INTO "farmer" ("farmer_id", "name", "phone", "address") VALUES (1, 'Rajesh Patil', '9876543210', 'Nashik, Maharashtra') ON CONFLICT ("farmer_id") DO NOTHING;
+INSERT INTO "farmer" ("farmer_id", "name", "phone", "address") VALUES (2, 'Suresh Jadhav', '9876543211', 'Pune, Maharashtra') ON CONFLICT ("farmer_id") DO NOTHING;
+INSERT INTO "farmer" ("farmer_id", "name", "phone", "address") VALUES (3, 'Amit Shinde', '9876543212', 'Kolhapur, Maharashtra') ON CONFLICT ("farmer_id") DO NOTHING;
+INSERT INTO "farmer" ("farmer_id", "name", "phone", "address") VALUES (4, 'Vijay Pawar', '9876543213', 'Satara, Maharashtra') ON CONFLICT ("farmer_id") DO NOTHING;
+INSERT INTO "farmer" ("farmer_id", "name", "phone", "address") VALUES (5, 'Ramesh More', '9876543214', 'Ahmednagar, Maharashtra') ON CONFLICT ("farmer_id") DO NOTHING;
+INSERT INTO "farmer" ("farmer_id", "name", "phone", "address") VALUES (6, 'VINAY CHAVAN', '+918779686575', 'Kalyan, Maharashtra') ON CONFLICT ("farmer_id") DO NOTHING;
+INSERT INTO "farmer" ("farmer_id", "name", "phone", "address") VALUES (7, 'VINAY CHAVAN', '+918779686575', 'Kalyan, Thane, Maharashtra') ON CONFLICT ("farmer_id") DO NOTHING;
+INSERT INTO "farmer" ("farmer_id", "name", "phone", "address") VALUES (8, 'Atharva', '87938942838', 'Thane') ON CONFLICT ("farmer_id") DO NOTHING;
+INSERT INTO "field" ("field_id", "farmer_id", "field_name", "area", "location") VALUES (101, 1, 'North Field', 4.50, 'Nashik') ON CONFLICT ("field_id") DO NOTHING;
+INSERT INTO "field" ("field_id", "farmer_id", "field_name", "area", "location") VALUES (102, 1, 'South Field', 3.20, 'Nashik') ON CONFLICT ("field_id") DO NOTHING;
+INSERT INTO "field" ("field_id", "farmer_id", "field_name", "area", "location") VALUES (103, 2, 'Main Farm', 5.00, 'Pune') ON CONFLICT ("field_id") DO NOTHING;
+INSERT INTO "field" ("field_id", "farmer_id", "field_name", "area", "location") VALUES (104, 3, 'River Side Field', 2.80, 'Kolhapur') ON CONFLICT ("field_id") DO NOTHING;
+INSERT INTO "field" ("field_id", "farmer_id", "field_name", "area", "location") VALUES (105, 4, 'East Farm', 6.00, 'Satara') ON CONFLICT ("field_id") DO NOTHING;
+INSERT INTO "field" ("field_id", "farmer_id", "field_name", "area", "location") VALUES (106, 5, 'Village Field', 3.75, 'Ahmednagar') ON CONFLICT ("field_id") DO NOTHING;
+INSERT INTO "field" ("field_id", "farmer_id", "field_name", "area", "location") VALUES (107, 6, 'Payri', 5.00, 'Phurus, Ratnagiri') ON CONFLICT ("field_id") DO NOTHING;
+INSERT INTO "field" ("field_id", "farmer_id", "field_name", "area", "location") VALUES (108, 6, 'Bhatla', 4.00, 'Phurus, Ratnagiri') ON CONFLICT ("field_id") DO NOTHING;
+INSERT INTO "field" ("field_id", "farmer_id", "field_name", "area", "location") VALUES (109, 7, 'Riverside Field', 10.00, 'Kalyan, Thane, Maharashtra') ON CONFLICT ("field_id") DO NOTHING;
+INSERT INTO "field" ("field_id", "farmer_id", "field_name", "area", "location") VALUES (110, 8, 'Payri', 10.00, 'Thane') ON CONFLICT ("field_id") DO NOTHING;
+INSERT INTO "crop" ("crop_id", "crop_name", "crop_type", "min_ph", "max_ph", "water_requirement", "min_nitrogen", "min_phosphorus", "min_potassium") VALUES (201, 'Rice', 'Cereal', 5.50, 7.00, 'High', 80.00, 40.00, 50.00) ON CONFLICT ("crop_id") DO NOTHING;
+INSERT INTO "crop" ("crop_id", "crop_name", "crop_type", "min_ph", "max_ph", "water_requirement", "min_nitrogen", "min_phosphorus", "min_potassium") VALUES (202, 'Wheat', 'Cereal', 6.00, 7.50, 'Medium', 70.00, 35.00, 40.00) ON CONFLICT ("crop_id") DO NOTHING;
+INSERT INTO "crop" ("crop_id", "crop_name", "crop_type", "min_ph", "max_ph", "water_requirement", "min_nitrogen", "min_phosphorus", "min_potassium") VALUES (203, 'Cotton', 'Cash Crop', 5.50, 8.00, 'Medium', 60.00, 40.00, 50.00) ON CONFLICT ("crop_id") DO NOTHING;
+INSERT INTO "crop" ("crop_id", "crop_name", "crop_type", "min_ph", "max_ph", "water_requirement", "min_nitrogen", "min_phosphorus", "min_potassium") VALUES (204, 'Soybean', 'Pulse', 6.00, 7.50, 'Medium', 50.00, 30.00, 40.00) ON CONFLICT ("crop_id") DO NOTHING;
+INSERT INTO "crop" ("crop_id", "crop_name", "crop_type", "min_ph", "max_ph", "water_requirement", "min_nitrogen", "min_phosphorus", "min_potassium") VALUES (205, 'Tomato', 'Vegetable', 6.00, 7.00, 'High', 60.00, 35.00, 50.00) ON CONFLICT ("crop_id") DO NOTHING;
+INSERT INTO "crop" ("crop_id", "crop_name", "crop_type", "min_ph", "max_ph", "water_requirement", "min_nitrogen", "min_phosphorus", "min_potassium") VALUES (206, 'Sugarcane', 'Cash Crop', 6.00, 7.50, 'High', 90.00, 40.00, 60.00) ON CONFLICT ("crop_id") DO NOTHING;
+INSERT INTO "crop_season" ("crop_season_id", "crop_id", "season") VALUES (301, 201, 'Kharif') ON CONFLICT ("crop_season_id") DO NOTHING;
+INSERT INTO "crop_season" ("crop_season_id", "crop_id", "season") VALUES (302, 201, 'Summer') ON CONFLICT ("crop_season_id") DO NOTHING;
+INSERT INTO "crop_season" ("crop_season_id", "crop_id", "season") VALUES (303, 202, 'Rabi') ON CONFLICT ("crop_season_id") DO NOTHING;
+INSERT INTO "crop_season" ("crop_season_id", "crop_id", "season") VALUES (304, 203, 'Kharif') ON CONFLICT ("crop_season_id") DO NOTHING;
+INSERT INTO "crop_season" ("crop_season_id", "crop_id", "season") VALUES (305, 204, 'Kharif') ON CONFLICT ("crop_season_id") DO NOTHING;
+INSERT INTO "crop_season" ("crop_season_id", "crop_id", "season") VALUES (306, 205, 'Rabi') ON CONFLICT ("crop_season_id") DO NOTHING;
+INSERT INTO "crop_season" ("crop_season_id", "crop_id", "season") VALUES (307, 205, 'Summer') ON CONFLICT ("crop_season_id") DO NOTHING;
+INSERT INTO "crop_season" ("crop_season_id", "crop_id", "season") VALUES (308, 206, 'Kharif') ON CONFLICT ("crop_season_id") DO NOTHING;
+INSERT INTO "field_crop" ("field_crop_id", "field_id", "crop_id", "season", "sowing_date", "harvest_date", "yield") VALUES (501, 101, 201, 'Kharif', '2026-06-20', '2026-10-15', 4200.00) ON CONFLICT ("field_crop_id") DO NOTHING;
+INSERT INTO "field_crop" ("field_crop_id", "field_id", "crop_id", "season", "sowing_date", "harvest_date", "yield") VALUES (502, 102, 205, 'Summer', '2026-03-10', '2026-06-20', 3100.00) ON CONFLICT ("field_crop_id") DO NOTHING;
+INSERT INTO "field_crop" ("field_crop_id", "field_id", "crop_id", "season", "sowing_date", "harvest_date", "yield") VALUES (503, 103, 202, 'Rabi', '2025-11-15', '2026-03-25', 3600.00) ON CONFLICT ("field_crop_id") DO NOTHING;
+INSERT INTO "field_crop" ("field_crop_id", "field_id", "crop_id", "season", "sowing_date", "harvest_date", "yield") VALUES (504, 104, 204, 'Kharif', '2026-06-25', '2026-10-05', 2500.00) ON CONFLICT ("field_crop_id") DO NOTHING;
+INSERT INTO "field_crop" ("field_crop_id", "field_id", "crop_id", "season", "sowing_date", "harvest_date", "yield") VALUES (505, 105, 203, 'Kharif', '2026-07-01', '2026-11-10', 3800.00) ON CONFLICT ("field_crop_id") DO NOTHING;
+INSERT INTO "field_crop" ("field_crop_id", "field_id", "crop_id", "season", "sowing_date", "harvest_date", "yield") VALUES (506, 106, 206, 'Kharif', '2026-06-15', '2027-02-15', 5200.00) ON CONFLICT ("field_crop_id") DO NOTHING;
+INSERT INTO "soil" ("soil_id", "field_id", "test_date", "soil_type", "ph", "nitrogen", "phosphorus", "potassium", "moisture") VALUES (402, 102, '2026-06-12', 'Clayey', 6.80, 65.00, 50.00, 55.00, 62.00) ON CONFLICT ("soil_id") DO NOTHING;
+INSERT INTO "soil" ("soil_id", "field_id", "test_date", "soil_type", "ph", "nitrogen", "phosphorus", "potassium", "moisture") VALUES (403, 103, '2026-06-15', 'Loamy', 7.10, 70.00, 40.00, 65.00, 48.00) ON CONFLICT ("soil_id") DO NOTHING;
+INSERT INTO "soil" ("soil_id", "field_id", "test_date", "soil_type", "ph", "nitrogen", "phosphorus", "potassium", "moisture") VALUES (404, 104, '2026-06-18', 'Sandy Loam', 6.20, 55.00, 35.00, 45.00, 40.00) ON CONFLICT ("soil_id") DO NOTHING;
+INSERT INTO "soil" ("soil_id", "field_id", "test_date", "soil_type", "ph", "nitrogen", "phosphorus", "potassium", "moisture") VALUES (405, 105, '2026-06-20', 'Black Soil', 7.00, 90.00, 55.00, 75.00, 58.00) ON CONFLICT ("soil_id") DO NOTHING;
+INSERT INTO "soil" ("soil_id", "field_id", "test_date", "soil_type", "ph", "nitrogen", "phosphorus", "potassium", "moisture") VALUES (406, 106, '2026-06-22', 'Loamy', 6.40, 60.00, 42.00, 50.00, 45.00) ON CONFLICT ("soil_id") DO NOTHING;
+INSERT INTO "soil" ("soil_id", "field_id", "test_date", "soil_type", "ph", "nitrogen", "phosphorus", "potassium", "moisture") VALUES (407, 101, '2026-10-08', 'dirt', 7.00, 50.00, 85.00, 98.00, 50.00) ON CONFLICT ("soil_id") DO NOTHING;
+INSERT INTO "soil" ("soil_id", "field_id", "test_date", "soil_type", "ph", "nitrogen", "phosphorus", "potassium", "moisture") VALUES (408, 107, '2026-10-09', 'Loamy', 7.00, 40.00, 80.00, 80.00, 50.00) ON CONFLICT ("soil_id") DO NOTHING;
+INSERT INTO "soil" ("soil_id", "field_id", "test_date", "soil_type", "ph", "nitrogen", "phosphorus", "potassium", "moisture") VALUES (409, 109, '2026-10-21', 'Sandy', 5.20, 84.00, 50.00, 50.00, 70.00) ON CONFLICT ("soil_id") DO NOTHING;
+INSERT INTO "soil" ("soil_id", "field_id", "test_date", "soil_type", "ph", "nitrogen", "phosphorus", "potassium", "moisture") VALUES (410, 110, '2026-10-22', 'Loamy', 9.00, 77.00, 87.00, 99.00, 80.00) ON CONFLICT ("soil_id") DO NOTHING;
+INSERT INTO "weather" ("weather_id", "field_id", "date", "temperature", "rainfall", "humidity") VALUES (601, 101, '2026-06-20', 28.50, 12.50, 72.00) ON CONFLICT ("weather_id") DO NOTHING;
+INSERT INTO "weather" ("weather_id", "field_id", "date", "temperature", "rainfall", "humidity") VALUES (602, 102, '2026-06-20', 30.00, 5.20, 65.00) ON CONFLICT ("weather_id") DO NOTHING;
+INSERT INTO "weather" ("weather_id", "field_id", "date", "temperature", "rainfall", "humidity") VALUES (603, 103, '2026-06-20', 29.00, 8.00, 68.00) ON CONFLICT ("weather_id") DO NOTHING;
+INSERT INTO "weather" ("weather_id", "field_id", "date", "temperature", "rainfall", "humidity") VALUES (604, 104, '2026-06-20', 27.50, 15.00, 78.00) ON CONFLICT ("weather_id") DO NOTHING;
+INSERT INTO "weather" ("weather_id", "field_id", "date", "temperature", "rainfall", "humidity") VALUES (605, 105, '2026-06-20', 26.50, 18.50, 80.00) ON CONFLICT ("weather_id") DO NOTHING;
+INSERT INTO "weather" ("weather_id", "field_id", "date", "temperature", "rainfall", "humidity") VALUES (606, 106, '2026-06-20', 31.00, 3.50, 60.00) ON CONFLICT ("weather_id") DO NOTHING;
+INSERT INTO "irrigation" ("irrigation_id", "field_id", "date", "water_amount", "method") VALUES (701, 101, '2026-06-22', 4500.00, 'Drip') ON CONFLICT ("irrigation_id") DO NOTHING;
+INSERT INTO "irrigation" ("irrigation_id", "field_id", "date", "water_amount", "method") VALUES (702, 102, '2026-06-21', 3200.00, 'Sprinkler') ON CONFLICT ("irrigation_id") DO NOTHING;
+INSERT INTO "irrigation" ("irrigation_id", "field_id", "date", "water_amount", "method") VALUES (703, 103, '2026-06-23', 3800.00, 'Drip') ON CONFLICT ("irrigation_id") DO NOTHING;
+INSERT INTO "irrigation" ("irrigation_id", "field_id", "date", "water_amount", "method") VALUES (704, 104, '2026-06-24', 2500.00, 'Sprinkler') ON CONFLICT ("irrigation_id") DO NOTHING;
+INSERT INTO "irrigation" ("irrigation_id", "field_id", "date", "water_amount", "method") VALUES (705, 105, '2026-06-25', 5000.00, 'Drip') ON CONFLICT ("irrigation_id") DO NOTHING;
+INSERT INTO "irrigation" ("irrigation_id", "field_id", "date", "water_amount", "method") VALUES (706, 106, '2026-06-26', 3000.00, 'Flood') ON CONFLICT ("irrigation_id") DO NOTHING;
+INSERT INTO "fertilizer" ("fertilizer_id", "fertilizer_name", "type", "nitrogen_content", "phosphorus_content", "potassium_content") VALUES (801, 'Urea', 'Nitrogen Fertilizer', 46.00, 0.00, 0.00) ON CONFLICT ("fertilizer_id") DO NOTHING;
+INSERT INTO "fertilizer" ("fertilizer_id", "fertilizer_name", "type", "nitrogen_content", "phosphorus_content", "potassium_content") VALUES (802, 'DAP', 'Phosphorus Fertilizer', 18.00, 46.00, 0.00) ON CONFLICT ("fertilizer_id") DO NOTHING;
+INSERT INTO "fertilizer" ("fertilizer_id", "fertilizer_name", "type", "nitrogen_content", "phosphorus_content", "potassium_content") VALUES (803, 'MOP', 'Potassium Fertilizer', 0.00, 0.00, 60.00) ON CONFLICT ("fertilizer_id") DO NOTHING;
+INSERT INTO "fertilizer" ("fertilizer_id", "fertilizer_name", "type", "nitrogen_content", "phosphorus_content", "potassium_content") VALUES (804, 'NPK 10-26-26', 'Compound Fertilizer', 10.00, 26.00, 26.00) ON CONFLICT ("fertilizer_id") DO NOTHING;
+INSERT INTO "fertilizer" ("fertilizer_id", "fertilizer_name", "type", "nitrogen_content", "phosphorus_content", "potassium_content") VALUES (805, 'NPK 20-20-20', 'Compound Fertilizer', 20.00, 20.00, 20.00) ON CONFLICT ("fertilizer_id") DO NOTHING;
+INSERT INTO "field_fertilizer" ("field_fertilizer_id", "field_id", "fertilizer_id", "date", "quantity") VALUES (901, 101, 801, '2026-06-25', 50.00) ON CONFLICT ("field_fertilizer_id") DO NOTHING;
+INSERT INTO "field_fertilizer" ("field_fertilizer_id", "field_id", "fertilizer_id", "date", "quantity") VALUES (902, 101, 802, '2026-06-28', 40.00) ON CONFLICT ("field_fertilizer_id") DO NOTHING;
+INSERT INTO "field_fertilizer" ("field_fertilizer_id", "field_id", "fertilizer_id", "date", "quantity") VALUES (903, 102, 805, '2026-04-01', 35.00) ON CONFLICT ("field_fertilizer_id") DO NOTHING;
+INSERT INTO "field_fertilizer" ("field_fertilizer_id", "field_id", "fertilizer_id", "date", "quantity") VALUES (904, 103, 804, '2025-12-10', 45.00) ON CONFLICT ("field_fertilizer_id") DO NOTHING;
+INSERT INTO "field_fertilizer" ("field_fertilizer_id", "field_id", "fertilizer_id", "date", "quantity") VALUES (905, 104, 802, '2026-07-05', 30.00) ON CONFLICT ("field_fertilizer_id") DO NOTHING;
+INSERT INTO "field_fertilizer" ("field_fertilizer_id", "field_id", "fertilizer_id", "date", "quantity") VALUES (906, 105, 803, '2026-07-10', 40.00) ON CONFLICT ("field_fertilizer_id") DO NOTHING;
+INSERT INTO "field_fertilizer" ("field_fertilizer_id", "field_id", "fertilizer_id", "date", "quantity") VALUES (907, 106, 801, '2026-07-02', 45.00) ON CONFLICT ("field_fertilizer_id") DO NOTHING;
+INSERT INTO "recommendation" ("recommendation_id", "field_id", "crop_id", "fertilizer_id", "recommendation_date", "irrigation_advice", "reason") VALUES (1001, 101, 201, 801, '2026-06-21', 'Maintain regular irrigation due to high water requirement.', 'Soil pH and moisture conditions are suitable for rice cultivation.') ON CONFLICT ("recommendation_id") DO NOTHING;
+INSERT INTO "recommendation" ("recommendation_id", "field_id", "crop_id", "fertilizer_id", "recommendation_date", "irrigation_advice", "reason") VALUES (1002, 102, 205, 805, '2026-06-22', 'Provide frequent irrigation during the growth stage.', 'Soil conditions and nutrient levels are suitable for tomato cultivation.') ON CONFLICT ("recommendation_id") DO NOTHING;
+INSERT INTO "recommendation" ("recommendation_id", "field_id", "crop_id", "fertilizer_id", "recommendation_date", "irrigation_advice", "reason") VALUES (1003, 103, 202, 804, '2026-06-23', 'Moderate irrigation is recommended.', 'Soil pH is within the suitable range for wheat.') ON CONFLICT ("recommendation_id") DO NOTHING;
+INSERT INTO "recommendation" ("recommendation_id", "field_id", "crop_id", "fertilizer_id", "recommendation_date", "irrigation_advice", "reason") VALUES (1004, 104, 204, 802, '2026-06-25', 'Irrigate when soil moisture falls below the required level.', 'Soil nutrient levels indicate a requirement for phosphorus supplementation.') ON CONFLICT ("recommendation_id") DO NOTHING;
+INSERT INTO "recommendation" ("recommendation_id", "field_id", "crop_id", "fertilizer_id", "recommendation_date", "irrigation_advice", "reason") VALUES (1005, 105, 203, 803, '2026-06-26', 'Maintain moderate irrigation based on soil moisture.', 'Field conditions are suitable for cotton with additional potassium support.') ON CONFLICT ("recommendation_id") DO NOTHING;
+INSERT INTO "recommendation" ("recommendation_id", "field_id", "crop_id", "fertilizer_id", "recommendation_date", "irrigation_advice", "reason") VALUES (1006, 106, 206, 801, '2026-06-27', 'Provide regular irrigation due to high water requirement.', 'Soil conditions are within the suitable range for sugarcane.') ON CONFLICT ("recommendation_id") DO NOTHING;
+INSERT INTO "recommendation" ("recommendation_id", "field_id", "crop_id", "fertilizer_id", "recommendation_date", "irrigation_advice", "reason") VALUES (1008, 101, 202, 801, '2026-10-08', 'Moderate irrigation; water when moisture drops below 40%.', 'Latest soil test: pH 7.00, moisture 50.0%. Wheat suits pH 6.00-7.50 and its water need (Medium) fits this moisture. Nitrogen is the lowest nutrient, so Urea is suggested.') ON CONFLICT ("recommendation_id") DO NOTHING;
+INSERT INTO "recommendation" ("recommendation_id", "field_id", "crop_id", "fertilizer_id", "recommendation_date", "irrigation_advice", "reason") VALUES (1009, 109, 201, 803, '2026-10-21', 'Irrigate frequently; this crop needs plenty of water.', 'Soil test: pH 5.20, moisture 70.0%. Rice suits pH 5.50-7.00 and the Kharif season. Potassium is the lowest nutrient relative to Rice''s needs, so MOP is suggested.') ON CONFLICT ("recommendation_id") DO NOTHING;
