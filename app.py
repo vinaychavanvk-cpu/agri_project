@@ -22,17 +22,18 @@ app.secret_key = os.environ.get("SECRET_KEY", "agri-secret-production-key-2026")
 
 def get_db_config():
     """Extract database connection settings from DATABASE_URL, POSTGRES_URL, or discrete environment variables."""
-    db_url = (
+    raw_url = (
         os.environ.get("DATABASE_URL")
         or os.environ.get("POSTGRES_URL")
         or os.environ.get("POSTGRES_URL_NON_POOLING")
         or os.environ.get("POSTGRES_PRISMA_URL")
     )
-    if db_url:
+    if raw_url:
+        db_url = raw_url.strip().strip('"').strip("'")
         parsed = urllib.parse.urlparse(db_url)
         config = {
-            "dbname": parsed.path.lstrip("/"),
-            "user": parsed.username,
+            "dbname": parsed.path.lstrip("/") or "postgres",
+            "user": parsed.username or "postgres",
             "password": urllib.parse.unquote(parsed.password or ""),
             "host": parsed.hostname,
             "port": parsed.port or 5432,
@@ -183,7 +184,7 @@ def dashboard():
 
         return render_template("index.html", counts=counts, area=area, yields=yields, recent=recent,
                                top=top_yield)
-    except psycopg2.OperationalError as e:
+    except Exception as e:
         return render_template("setup.html", error=str(e)), 200
 
 @app.route("/init-db", methods=["GET", "POST"])
@@ -402,7 +403,7 @@ def advise(field_id):
 def recommend():
     try:
         fields = q("SELECT field_id, field_name FROM field ORDER BY field_id")
-    except psycopg2.OperationalError as e:
+    except Exception as e:
         return render_template("setup.html", error=str(e)), 200
 
     result, fid = None, request.values.get("field_id")
@@ -432,13 +433,12 @@ def recommend():
 
 @app.errorhandler(404)
 def not_found(e):
-    flash("The requested page or record could not be found.")
-    return redirect(url_for("dashboard"))
+    return render_template("setup.html", error="404 Not Found: The requested URL was not found on the server."), 404
 
 @app.errorhandler(500)
 def server_error(e):
-    flash("An unexpected internal error occurred. Please try again.")
-    return redirect(url_for("dashboard"))
+    err_desc = getattr(e, 'description', str(e))
+    return render_template("setup.html", error=f"500 Internal Server Error: {err_desc}"), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("FLASK_PORT", 5001))
